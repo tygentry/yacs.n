@@ -1,22 +1,20 @@
 <template>
   <div id='footer'>
-    <hr>
+    <hr />
     <section id='main-block'>
       <b-container>
         <b-row>
+          <b-col/>
           <b-col>
-            <!-- TODO: Autogenerate these when doing the user side, semester select -->
             <strong class="section-head">Other Semesters</strong>
-            <a class="link" id="current">
-              {{ currentSemester }}
-            </a>
-            <a 
-              v-for="semester in otherSemesters"
-              :key="semester.text"
-              :value="semester.value"
-              :href="`/?semester=${semester.text}`"
+            <a
+              v-for="option of otherSemesters"
+              :key="option.text"
               class="link"
-              > {{semester.value}}
+              :disabled="option.text === semester"
+              @click="updateCurrentSemester(option.text)"
+            >
+              {{option.value}}
             </a>
           </b-col>
 
@@ -32,7 +30,7 @@
             <a class="link" href="http://opensource-template.wikidot.com/legal:terms-of-use" target="_blank">Terms of Use</a>
             <!-- <a class="link" href=#>Cookies</a> -->
           </b-col>
-
+          <b-col/>
         </b-row>
       </b-container>
     </section>
@@ -48,41 +46,37 @@
 
 import { getSemesters } from '@/services/YacsService';
 
-import { getDefaultSemester }  from '@/services/AdminService';
-
 export default {
     name: 'Footer',
+    props: {
+      semester: String
+    },
     data() {
       return {
-        semesterOptions: [],
-        currentSemester: ''
+        semesterOptions: []
       }
     },
     methods: {
-    },
-    created () {
-      if(this.$route.query.semester){
-        this.currentSemester = this.$route.query.semester;
+      updateCurrentSemester(to) {
+        console.log("in change emit of footer");
+        this.$emit("changeCurrentSemester", to);
       }
-      else{
-        getDefaultSemester().then(semester => {
-          this.currentSemester = semester;
-        });
-      }
-      getSemesters().then(data  => {
-        this.semesterOptions.push(...data.map(s => ({text: s.semester, value: s.semester})));
-        });
     },
     computed: {
-      otherSemesters: function() {
-        var retSemesters = [];
-        for(var item of this.semesterOptions){
-          if(item.value != this.currentSemester){
-            retSemesters.push(item);
+      otherSemesters: function(){
+        var semesters = [];
+        for(var sem of this.semesterOptions){
+          if(sem.text != this.semester){
+            semesters.push(sem);
           }
         }
-        return retSemesters;
-      } 
+        return semesters
+      }
+    },
+    created () {
+      getSemesters().then(data  => {
+        this.semesterOptions.push(...data.map(s => ({text: s.semester, value: s.semester})));
+      });
     }
 }
 </script>
@@ -90,22 +84,28 @@ export default {
 <style scoped lang="scss">
 
 #footer {
+  width: 100%;
   #main-block {
     background: white;
     color: black;
-    padding: 25px 0;
+    padding-top: 25px;
     width: 100%;
     height: auto;
-    padding-left: 150px;
+    margin: 0px !important;
 
     strong.section-head {
       color: #3D4959;
       margin-bottom: 2px;
     }
 
+    a.link:hover{
+      text-decoration: underline;
+      cursor:pointer;
+    }
+
     a.link {
       color: inherit;
-      display: block;
+      display: table;
     }
 
     a.link#current {
@@ -120,11 +120,14 @@ export default {
     height: auto;
     padding: 0px;
     margin: 0px;
+    margin-top: 10px;
     padding: 10px 0px;
+    font-size: 15px;
 
     p {
       color: #3D4959;
       margin: 0;
+      margin-left: -30px;
     }
   }
 

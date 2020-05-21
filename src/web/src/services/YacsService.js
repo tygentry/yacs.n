@@ -36,8 +36,12 @@ const _getCourseIdentifier = courseObj => {
  * Returns a list of all courses
  * @returns {Promise<Course[]>}
  */
-export const getCourses = () =>
-  client.get('/class').then(({ data }) => {
+export const getCourses = (semester) =>
+  client.get('/class', {
+      "params": {
+        "semester": semester
+      }
+  }).then(({ data }) => {
     return data.map(c => {
       c.date_start = localToUTCDate(new Date(c.date_start));
       c.date_end = localToUTCDate(new Date(c.date_end));
@@ -67,8 +71,12 @@ export const getDepartments = () =>
  * Returns a list of all subsemesters
  * @returns {Promise<Subsemester[]>}
  */
-export const getSubSemesters = () =>
-  client.get('/subsemester').then(({ data }) => {
+export const getSubSemesters = (semester) =>
+  client.get('/subsemester', {
+    params: {
+      "semester": semester
+    }
+  }).then(({ data }) => {
     return data.map(subsemester => {
       subsemester.date_start = localToUTCDate(new Date(subsemester.date_start));
       subsemester.date_end = localToUTCDate(new Date(subsemester.date_end));
@@ -82,4 +90,17 @@ export const getSubSemesters = () =>
     });
   });
 
-  export const getSemesters = () => client.get('/semester').then(res => res.data);
+export const getSemesters = () => client.get('/semester').then(res => res.data);
+
+export const addStudentCourse = course_info => client.post('/course', course_info).then(({data}) => {
+  return data;
+});
+
+export const removeStudentCourse = course_info => client.delete('/course', {
+    data: course_info
+}).then(res => res.data);
+
+export const getStudentCourses = user_info => client.get('/course', {
+    params: user_info
+  }).then(res => res.data);
+
